@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%=shopData.shopName%></title>
+    <link rel="stylesheet" type="text/css" href="/main.css" />
+  </head>
+  <body>
+    <h1><%=shopData.shopName%>:Login audit</h1>
+    <table>
+      <tr>
+        <th>Time</th>
+        <th>Username</th>
+        <th>Result</th>
+        <th>Message</th>
+      </tr>
+      <% auditData.forEach(function(entry) { %>
+        <tr>
+          <td><%= entry.time %></td>
+          <td><%= entry.username %></td>
+          <td><%= entry.success ? 'Success' : 'Failed' %></td>
+          <td><%= entry.message %></td>
+        </tr>
+      <% }) %>
+    </table>
+  </body>
+</html>

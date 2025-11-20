@@ -66,8 +66,58 @@ router.get('/login', function (req, res) {
 })
 
 router.post('/loggedin', function (req, res, next){
-    
+    const username = req.body.username;
+    const plainPassword = req.body.password;
+
+    const sqlquery = "SELECT username, first, last, hashedPassword FROM users WHERE username = ?";
+
+    db.query(sqlquery, [username], function (err, results) {
+        if (err) return next(err);
+        
+        if (results.length === 0) {
+            const audit = "INSERT INTO loginaudit (username, success, message) VALUES (?,?,?)";
+            db.query(audit, [username, 0, "Username not found"], function (err2) {
+                if (err2) console.error(err2);
+                return res.send("Login failed. Your username or password is incorrect.");
+            });
+            return;
+        }
+
+        const user = results[0];
+        const hashedPassword = user.hashedPassword;
+        
+        bcrypt.compare(plainPassword, hashedPassword, function (err, result) {
+            if (err) {
+                return next(err);
+            } else if (result === true) {
+                // Successful login
+                const audit = "INSERT INTO loginaudit (username, success, message) VALUES (?,?,?)";
+                db.query(audit, [username, 1, "Login successful"], function (err2) {
+                    if (err2) console.error(err2);
+                    res.send(
+                    'Welcome back ' + user.first + ' ' + user.last + '. You have logged in with the username ' + user.username + '.'
+                    );
+                });
+            } else {
+                // Wrong password
+                const audit = "INSERT INTO loginaudit (username, success, message) VALUES (?,?,?)";
+                db.query(audit, [username, 0, "Wrong password"], function (err2) {
+                    if (err2) console.error(err2);
+                    res.send("Login failed. Your username or password is incorrect.");
+                });
+            }
+        });
+    });
+
 })
 
+router.get('/audit', function (req, res, next) {
+    const sqlquery = "SELECT * FROM audit_log ORDER BY timestamp DESC";
+
+    db.query(sqlquery, function(err, result) {
+        if (err) return next(err);
+        res.render('audit.ejs', { audit: result });
+    });
+});
 // Export the router object so index.js can access it
 module.exports = router
