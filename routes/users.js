@@ -5,6 +5,14 @@ const bcrypt = require('bcrypt')
 const saltRounds = 10
 const db = global.db
 
+const redirectLogin = (req, res, next) => {
+    if (!req.session.userId ) {
+      res.redirect('./login') // redirect to the login page
+    } else { 
+        next (); // move to the next middleware function
+    } 
+}
+
 router.get('/register', function (req, res, next) {
     res.render('register.ejs')
 })

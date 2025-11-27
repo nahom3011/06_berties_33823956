@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 // Import express and ejs and mysql
 var express = require ('express')
 var ejs = require('ejs')
@@ -8,6 +10,8 @@ var mysql = require('mysql2')
 const app = express()
 const port = 8000
 
+var session = require ('express-session')
+
 // Tell Express that we want to use EJS as the templating engine
 app.set('view engine', 'ejs')
 
@@ -17,15 +21,25 @@ app.use(express.urlencoded({ extended: true }))
 // Set up public folder (for css and static js)
 app.use(express.static(path.join(__dirname, 'public')))
 
+// Create a session
+app.use(session({
+    secret: 'somerandomstuff',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        expires: 600000
+    }
+}))
+
 // Define our application-specific data
 app.locals.shopData = {shopName: "Bertie's Books"}
 
 // Define the database connection pool
 const db = mysql.createPool({
-    host: 'localhost',
-    user: 'berties_books_app',
-    password: 'qwertyuiop',
-    database: 'berties_books',
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
