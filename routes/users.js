@@ -55,7 +55,7 @@ router.post('/registered', function (req, res, next) {
 });
 
 // List all users (without passwords)
-router.get('/list', function (req, res, next) {
+router.get('/list',redirectLogin, (req, res, next) => {
     // query database to get all the users
     let sqlquery = "SELECT username, first, last, email FROM users";
 
