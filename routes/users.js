@@ -9,7 +9,7 @@ const { check, validationResult } = require('express-validator');
 
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId ) {
-      res.redirect('./login') // redirect to the login page
+      res.redirect('../users/login') // redirect to the login page
     } else { 
         next (); // move to the next middleware function
     } 
@@ -19,42 +19,51 @@ router.get('/register', function (req, res, next) {
     res.render('register.ejs')
 })
 
-router.post('/registered', function (req, res, next) {
-
-    const first = req.body.first
-    const last = req.body.last
-    const username = req.body.username
-    const email = req.body.email
-
-    const plainPassword = req.body.password
-
-
-    bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
-        // Store hashed password in your database.
-        if (err){
-            return console.error(err.message);
+router.post('/registered',
+    [
+        check('email').isEmail(), 
+        check('username').isLength({ min: 5, max: 20}),
+        check('password').isLength({min: 8}),
+        check('first').notEmpty(),
+        check('last').notEmpty()
+    ], function (req, res, next) {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            res.render('./register')
         }
+        else{
+            
+        const plainPassword = req.body.password
 
-        const sql = `INSERT INTO users (username, first, last, email, hashedPassword) VALUES (?, ?, ?, ?, ?)`
-        // const values = [username, first, last, email, hashedPassword];
 
-        db.query(sql, [username, first, last, email, hashedPassword], function (err) {
-            if (err) {
-                if (err.code === 'ER_DUP_ENTRY') {
-                    return res.send("Registration failed: Username already exists. Please choose another one.");
-                }
-                return next(err);
+        bcrypt.hash(plainPassword, saltRounds, function(err, hashedPassword) {
+            // Store hashed password in your database.
+            if (err){
+                return console.error(err.message);
             }
 
-        // saving data in database
-        res.send(' Hello '+ req.body.first + ' ' +
-            req.body.last + ' you are now registered!  We will send an email to you at ' +
-            req.body.email + ' . Your password is: '+ req.body.password +' and your hashed password is: '+ hashedPassword
-        );                                                                              
-        
+            const sql = `INSERT INTO users (username, first, last, email, hashedPassword) VALUES (?, ?, ?, ?, ?)`
+            // const values = [username, first, last, email, hashedPassword];
+
+            db.query(sql, [username, first, last, email, hashedPassword], function (err) {
+                if (err) {
+                    if (err.code === 'ER_DUP_ENTRY') {
+                        return res.send("Registration failed: Username already exists. Please choose another one.");
+                    }
+                    return next(err);
+                }
+
+            // saving data in database
+            res.send(' Hello '+ req.body.first + ' ' +
+                req.body.last + ' you are now registered!  We will send an email to you at ' +
+                req.body.email + ' . Your password is: '+ req.body.password +' and your hashed password is: '+ hashedPassword
+            );                                                                              
+            
         });
     });
+    }
 });
+
 
 // List all users (without passwords)
 router.get('/list', redirectLogin, (req, res) => {
