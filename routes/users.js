@@ -55,22 +55,17 @@ router.post('/registered', function (req, res, next) {
 });
 
 // List all users (without passwords)
-router.get('/list',redirectLogin, (req, res, next) => {
-    // query database to get all the users
-    let sqlquery = "SELECT username, first, last, email FROM users";
+router.get('/list', redirectLogin, (req, res) => {
+     const sql = 'SELECT username, first, last, email FROM users';
 
-    // execute sql query
-    db.query(sqlquery, function (err, result) {
-        if (err) {
-            return next(err);
-        }
-        // render users list page
-        res.render("userlist.ejs", { usersData: result });
-    });
+    db.query(sql, (err, result) => {
+        if (err) return res.send('Error loading users');
+        res.render('listusers.ejs', { usersData: result });
+    }); 
 });
 
 router.get('/login', function (req, res) {
-    res.render('users/login')
+    res.render('login.ejs')
 })
 
 router.post('/loggedin', function (req, res, next){
@@ -98,6 +93,10 @@ router.post('/loggedin', function (req, res, next){
             if (err) {
                 return next(err);
             } else if (result === true) {
+
+                // Save user session here, when login is successful
+                req.session.userId = req.body.username;
+
                 // Successful login
                 const audit = "INSERT INTO loginaudit (username, success, message) VALUES (?,?,?)";
                 db.query(audit, [username, 1, "Login successful"], function (err2) {
@@ -119,7 +118,7 @@ router.post('/loggedin', function (req, res, next){
 
 })
 
-router.get('/audit', function (req, res, next) {
+router.get('/audit', redirectLogin, (req, res, next) => {
     const sqlquery = "SELECT * FROM audit_log ORDER BY timestamp DESC";
 
     db.query(sqlquery, function(err, result) {
