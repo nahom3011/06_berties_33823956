@@ -18,6 +18,11 @@ app.set('view engine', 'ejs')
 // Set up the body parser 
 app.use(express.urlencoded({ extended: true }))
 
+const expressSanitizer = require('express-sanitizer');
+
+// Create an input sanitizer
+app.use(expressSanitizer());
+
 // Set up public folder (for css and static js)
 app.use(express.static(path.join(__dirname, 'public')))
 
