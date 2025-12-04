@@ -129,6 +129,15 @@ router.post('/loggedin', function (req, res, next){
 
 })
 
+router.get('/logout', redirectLogin, (req,res) => {
+    req.session.destroy(err => {
+    if (err) {
+        return res.redirect('./')
+    }
+    res.send('you are now logged out. <a href='+'./'+'>Home</a>');
+    })
+})
+
 router.get('/audit', redirectLogin, (req, res, next) => {
     const sqlquery = "SELECT * FROM audit_log ORDER BY timestamp DESC";
 
