@@ -64,17 +64,6 @@ router.post('/registered',
     }
 });
 
-
-// List all users (without passwords)
-router.get('/list', redirectLogin, (req, res) => {
-     const sql = 'SELECT username, first, last, email FROM users';
-
-    db.query(sql, (err, result) => {
-        if (err) return res.send('Error loading users');
-        res.render('listusers.ejs', { usersData: result });
-    }); 
-});
-
 router.get('/login', function (req, res) {
     res.render('login.ejs')
 })
@@ -130,11 +119,11 @@ router.post('/loggedin', function (req, res, next){
 })
 
 router.get('/logout', redirectLogin, (req,res) => {
-    req.session.destroy(err => {
-    if (err) {
-        return res.redirect('./')
-    }
-    res.send('you are now logged out. <a href='+'./'+'>Home</a>');
+        req.session.destroy(err => {
+        if (err) {
+          return res.redirect('./')
+        }
+        res.send('you are now logged out. <a href='+'./'+'>Home</a>');
     })
 })
 
@@ -146,5 +135,17 @@ router.get('/audit', redirectLogin, (req, res, next) => {
         res.render('audit.ejs', { audit: result });
     });
 });
+
+router.get('/list', redirectLogin, function (req, res, next) {
+    let sqlquery = "SELECT username, first_name, last_name, email FROM users"; // query database to get all the users
+    // execute sql query
+    db.query(sqlquery, (err, result) => {
+        if (err) {
+            next(err)
+        }
+        res.render("user_list.ejs", {users: result})
+    });
+})
+
 // Export the router object so index.js can access it
 module.exports = router
