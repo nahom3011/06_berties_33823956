@@ -4,9 +4,10 @@ const router = express.Router()
 
 const redirectLogin = (req, res, next) => {
     if (!req.session.userId) {
-        return res.redirect('/users/login'); // send not-logged-in users to login page
+        return res.redirect('../users/login'); // send not-logged-in users to login page
+    } else{
+        next(); //move to the next middleware function
     }
-    next();
 };
 
 router.get('/search',function(req, res, next){
